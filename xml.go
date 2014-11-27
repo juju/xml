@@ -45,6 +45,12 @@ type Name struct {
 	Space, Local string
 }
 
+// isNamespace reports whether the name is a namespace-defining
+// name.
+func (name Name) isNamespace() bool {
+	return name.Local == "xmlns" || name.Space == "xmlns"
+}
+
 // An Attr represents an attribute in an XML element (Name=Value).
 type Attr struct {
 	Name  Name
@@ -71,6 +77,24 @@ func (e StartElement) Copy() StartElement {
 // End returns the corresponding XML end element.
 func (e StartElement) End() EndElement {
 	return EndElement{e.Name}
+}
+
+// setDefaultNamespace sets the namespace of the element
+// as the default for all elements contained within it.
+func (start *StartElement) setDefaultNamespace() {
+	if start.Name.Space == "" {
+		// If there's no namespace on the element, don't
+		// set the default. Strictly speaking this might be wrong, as
+		// we can't tell if the element had no namespace set
+		// or was just using the default namespace.
+		return
+	}
+	start.Attr = append(start.Attr, Attr{
+		Name: Name{
+			Local: "xmlns",
+		},
+		Value: start.Name.Space,
+	})
 }
 
 // An EndElement represents an XML end element.

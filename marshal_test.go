@@ -1196,7 +1196,7 @@ var encodeTokenTests = []struct {
 	want string
 	ok   bool
 }{
-	{StartElement{Name{"space", "local"}, nil}, "<local xmlns=\"space\">", true},
+	{StartElement{Name{"space", "local"}, nil}, "<space:local xmlns:space=\"space\">", true},
 	{StartElement{Name{"space", ""}, nil}, "", false},
 	{EndElement{Name{"space", ""}}, "", false},
 	{CharData("foo"), "foo", true},
