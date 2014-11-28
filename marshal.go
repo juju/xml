@@ -264,14 +264,11 @@ type printer struct {
 
 // printerPrefix holds a namespace undo record.
 // When an element is popped, the prefix record
-// is set back to the recorded URL.
+// is set back to the recorded URL. The empty
+// prefix records the URL for the default name space.
 //
-// The "xmlns" prefix is special. It records the
-// default name space, the name space of elements
-// with no prefix.
-//
-// The start of an element is recorded with an empty
-// prefix.
+// The start of an element is recorded with an element
+// that has mark=true.
 type printerPrefix struct {
 	prefix string
 	url    string
@@ -306,7 +303,11 @@ func (p *printer) defineNS(attr Attr) error {
 		// Ignore: it's not a namespace definition
 		return nil
 	}
-	if p.attrNS[prefix] == attr.Value {
+	// If we already have a prefix for the name space,
+	// then we will use that. This prevents us from
+	// having two prefixes for the same name space
+	// so attrNS and attrPrefix can remain bijective.
+	if _, ok := p.attrPrefix[attr.Value]; ok {
 		// No need for redefinition.
 		return nil
 	}
@@ -325,6 +326,11 @@ func (p *printer) createAttrPrefix(url string) {
 	if url == xmlURL {
 		return
 	}
+	// TODO If the URL is an existing prefix, we could
+	// use it as is. That would enable the
+	// marshaling of elements that had been unmarshaled
+	// and with a name space prefix that was not found.
+
 	// Pick a name. We try to use the final element of the path
 	// but fall back to _.
 	prefix := strings.TrimRight(url, "/")
@@ -419,6 +425,10 @@ func (p *printer) setAttrPrefix(prefix, url string) {
 		p.attrPrefix = make(map[string]string)
 		p.attrNS = make(map[string]string)
 	}
+	// Remove any old prefix value. This is OK because we maintain a
+	// strict one-to-one mapping between prefix and URL (see
+	// defineNS)
+	delete(p.attrPrefix, p.attrNS[prefix])
 	p.attrPrefix[url] = prefix
 	p.attrNS[prefix] = url
 }
@@ -704,13 +714,11 @@ func (p *printer) writeStart(start *StartElement) error {
 	// will take precedence over implicitly declared prefixes
 	// regardless of the order of the attributes.
 	for _, attr := range start.Attr {
-		if attr.Name.isNamespace() {
-			if err := p.defineNS(attr); err != nil {
-				return err
-			}
+		if err := p.defineNS(attr); err != nil {
+			return err
 		}
 	}
-	// Define any new namespaces implied by the attributes.
+	// Define any new name spaces implied by the attributes.
 	for _, attr := range start.Attr {
 		name := attr.Name
 		if name.Space != "" && !name.isNamespace() {
