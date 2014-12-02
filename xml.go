@@ -40,7 +40,8 @@ func (e *SyntaxError) Error() string {
 // with a name space identifier (Space).
 // In tokens returned by Decoder.Token, the Space identifier
 // is given as a canonical URL, not the short prefix used
-// in the document being parsed.
+// in the document being parsed, apart from the xmlns
+// namespace, which is left as the literal string "xmlns".
 type Name struct {
 	Space, Local string
 }

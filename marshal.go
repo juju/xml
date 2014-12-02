@@ -821,8 +821,8 @@ func (p *printer) writeStart(start *StartElement) error {
 // writeName writes the given name. It assumes
 // that p.createNSPrefix(name) has already been called.
 func (p *printer) writeName(name Name, isAttr bool) {
-	if pref := p.prefixForNS(name.Space, isAttr); pref != "" {
-		p.WriteString(pref)
+	if prefix := p.prefixForNS(name.Space, isAttr); prefix != "" {
+		p.WriteString(prefix)
 		p.WriteByte(':')
 	}
 	p.WriteString(name.Local)
