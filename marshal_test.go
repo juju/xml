@@ -1221,6 +1221,12 @@ var encodeTokenTests = []struct {
 	},
 	want: "foo",
 }, {
+	about: "char data with escaped chars",
+	toks: []Token{
+		CharData(" \t\n"),
+	},
+	want: " &#x9;\n",
+}, {
 	about: "comment",
 	toks: []Token{
 		Comment("foo"),
