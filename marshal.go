@@ -231,9 +231,14 @@ func (enc *Encoder) EncodeToken(t Token) error {
 		}
 		p.WriteString("?>")
 	case Directive:
-		if bytes.Contains(t, endDirective) {
-			return fmt.Errorf("xml: EncodeToken of Directive containing > marker")
-		}
+		// Some directives are allowed to contain ">" markers. See rawToken
+		// for details. Ideally we would only allow well formatted directives
+		// on output, but for the time being we want to at least
+		// allow streaming XML, so we allow anything.
+		// See also: https://github.com/juju/charmstore/issues/301
+		// if bytes.Contains(t, endDirective) {
+		//	return fmt.Errorf("xml: EncodeToken of Directive containing > marker")
+		// }
 		p.WriteString("<!")
 		p.Write(t)
 		p.WriteString(">")
