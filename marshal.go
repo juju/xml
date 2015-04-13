@@ -122,11 +122,11 @@ func MarshalIndent(v interface{}, prefix, indent string) ([]byte, error) {
 	return b.Bytes(), nil
 }
 
-// TextMarshaler is the interface implemented by an object that can
+// textMarshaler is the interface implemented by an object that can
 // marshal itself into a textual form.
 //
 // MarshalText encodes the receiver into UTF-8-encoded text and returns the result.
-type TextMarshaler interface {
+type textMarshaler interface {
         MarshalText() (text []byte, err error)
 }
 
@@ -499,7 +499,7 @@ func (p *printer) setAttrPrefix(prefix, url string) {
 var (
 	marshalerType     = reflect.TypeOf((*Marshaler)(nil)).Elem()
 	marshalerAttrType = reflect.TypeOf((*MarshalerAttr)(nil)).Elem()
-	textMarshalerType = reflect.TypeOf((*TextMarshaler)(nil)).Elem()
+	textMarshalerType = reflect.TypeOf((*textMarshaler)(nil)).Elem()
 )
 
 // marshalValue writes one or more XML elements representing val.
@@ -542,12 +542,12 @@ func (p *printer) marshalValue(val reflect.Value, finfo *fieldInfo, startTemplat
 
 	// Check for text marshaler.
 	if val.CanInterface() && typ.Implements(textMarshalerType) {
-		return p.marshalTextInterface(val.Interface().(TextMarshaler), p.defaultStart(typ, finfo, startTemplate))
+		return p.marshalTextInterface(val.Interface().(textMarshaler), p.defaultStart(typ, finfo, startTemplate))
 	}
 	if val.CanAddr() {
 		pv := val.Addr()
 		if pv.CanInterface() && pv.Type().Implements(textMarshalerType) {
-			return p.marshalTextInterface(pv.Interface().(TextMarshaler), p.defaultStart(pv.Type(), finfo, startTemplate))
+			return p.marshalTextInterface(pv.Interface().(textMarshaler), p.defaultStart(pv.Type(), finfo, startTemplate))
 		}
 	}
 
@@ -649,7 +649,7 @@ func (p *printer) marshalValue(val reflect.Value, finfo *fieldInfo, startTemplat
 		}
 
 		if fv.CanInterface() && fv.Type().Implements(textMarshalerType) {
-			text, err := fv.Interface().(TextMarshaler).MarshalText()
+			text, err := fv.Interface().(textMarshaler).MarshalText()
 			if err != nil {
 				return err
 			}
@@ -660,7 +660,7 @@ func (p *printer) marshalValue(val reflect.Value, finfo *fieldInfo, startTemplat
 		if fv.CanAddr() {
 			pv := fv.Addr()
 			if pv.CanInterface() && pv.Type().Implements(textMarshalerType) {
-				text, err := pv.Interface().(TextMarshaler).MarshalText()
+				text, err := pv.Interface().(textMarshaler).MarshalText()
 				if err != nil {
 					return err
 				}
@@ -763,8 +763,8 @@ func (p *printer) marshalInterface(val Marshaler, start StartElement) error {
 	return nil
 }
 
-// marshalTextInterface marshals a TextMarshaler interface value.
-func (p *printer) marshalTextInterface(val TextMarshaler, start StartElement) error {
+// marshalTextInterface marshals a textMarshaler interface value.
+func (p *printer) marshalTextInterface(val textMarshaler, start StartElement) error {
 	if err := p.writeStart(&start); err != nil {
 		return err
 	}
@@ -921,7 +921,7 @@ func (p *printer) marshalStruct(tinfo *typeInfo, val reflect.Value) error {
 		switch finfo.flags & fMode {
 		case fCharData:
 			if vf.CanInterface() && vf.Type().Implements(textMarshalerType) {
-				data, err := vf.Interface().(TextMarshaler).MarshalText()
+				data, err := vf.Interface().(textMarshaler).MarshalText()
 				if err != nil {
 					return err
 				}
@@ -931,7 +931,7 @@ func (p *printer) marshalStruct(tinfo *typeInfo, val reflect.Value) error {
 			if vf.CanAddr() {
 				pv := vf.Addr()
 				if pv.CanInterface() && pv.Type().Implements(textMarshalerType) {
-					data, err := pv.Interface().(TextMarshaler).MarshalText()
+					data, err := pv.Interface().(textMarshaler).MarshalText()
 					if err != nil {
 						return err
 					}
